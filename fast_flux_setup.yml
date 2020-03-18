@@ -1,0 +1,66 @@
+---
+  - hosts: local
+    connection: local
+    gather_facts: False
+    vars:
+      instance_type: t2.micro
+      security_group: dns_sg
+      image: ami-0fc20dd1da406780b
+      keypair: VPN
+      region: us-east-2
+      vpc: vpc-0e29420e07010d826
+      vpc_subnet_id: subnet-07c8e9cd2fe24ffc2
+      count: 1
+    vars_files:
+      - aws_keys.yml
+
+    tasks:
+      - name: Create Security Group
+        ec2_group:
+          name: "{{ security_group }}"
+          description: DNS C2 Security Group
+          region: "{{ region }}"
+          aws_access_key: "{{ aws_access_key }}"
+          aws_secret_key: "{{ aws_secret_key }}"
+          rules:
+           - proto: tcp
+             from_port: 22
+             to_port: 22
+             cidr_ip: 0.0.0.0/0
+           - proto: udp
+             from_port: 53
+             to_port: 53
+             cidr_ip: 0.0.0.0/0
+           - proto: tcp
+             from_port: 53
+             to_port: 53
+             cidr_ip: 0.0.0.0/0
+          rules_egress:
+           - proto: all
+             cidr_ip: 0.0.0.0/0
+
+      - name: Launch New EC2 Instance
+        ec2:
+           aws_access_key: "{{ aws_access_key }}"
+           aws_secret_key: "{{ aws_secret_key }}"
+           group: "{{ security_group }}"
+           instance_type: "{{ instance_type }}"
+           image: "{{ image }}"
+           wait: true 
+           region: "{{ region }}"
+           keypair: "{{ keypair }}"
+           count: "{{ count }}"
+        register: ec2
+
+      - name: Add the newly created host so that we can further contact it
+        add_host:
+          name: "{{ item.public_ip }}"
+          groups: c2_servers
+        with_items: "{{ ec2.instances }}"
+
+      - name: Wait for SSH to come up
+        wait_for:
+          host: "{{ item.public_ip }}"
+          port: 22 
+          state: started 
+        with_items: "{{ ec2.instances }}"

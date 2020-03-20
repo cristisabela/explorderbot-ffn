@@ -54,31 +54,23 @@
              Name: DNSC2
         register: ec2
 
-      - name: Add the newly created host so that we can further contact it
+      - name: Add Newly Created Host to Hosts List
         add_host:
           name: "{{ item.public_ip }}"
           groups: c2_servers
         with_items: "{{ ec2.instances }}"
 
-      - name: Wait for SSH to come up
+      - name: Wait for SSH Service to Start
         wait_for:
           host: "{{ item.public_ip }}"
           port: 22 
           state: started 
         with_items: "{{ ec2.instances }}"
-      
-      - name: Disable resolved
-        systemd:
-          name: systemd-resolved
-          state: stopped
 
-      - name: Upgrade Pacakges
-        become: true
-        apt:
-          upgrade: yes
-          update_cache: yes
+      - name: Install Python
+        raw: sudo apt-get -y install python3-pip
 
-      - name: Creating DNSCat2 Directory
+      - name: Create DNSCat2 Directory
         file:
           path: /opt/DNSCat2
           state: directory

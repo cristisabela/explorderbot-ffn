@@ -67,25 +67,28 @@
           state: started 
         with_items: "{{ ec2.instances }}"
 
-      - name: Install Python
-        raw: sudo apt-get -y install python3-pip
+  - hosts: c2_servers
+    remote_user: ubuntu
+    become: yes
+    gather_facts: no
+    pre_tasks:
+     - name: 'Initialize Repos and Update Packages'
+       raw: 'sudo apt-get -y update' 
+     - name: Installing Package Dependencies   
+       raw: 'sudo apt-get -y install python3-pip python3-apt python-apt ruby-dev'
+    tasks:
+     - name: Create DNSCat2 Directory
+       file:
+         path: /opt/DNSCat2
+         state: directory
+     
+     - name: Install DNSCat2 Dependencies
+       gem:
+         name: salsa20
 
-      - name: Create DNSCat2 Directory
-        file:
-          path: /opt/DNSCat2
-          state: directory
+     - name: Install DNSCat2
+       git:
+         repo: https://github.com/iagox86/dnscat2.git
+         version: master
+         dest: /opt/DNSCat2        
 
-      - name: Install Ruby
-        apt:
-          name: ruby-dev
-      
-      - name: Install Salsa20
-        gem:
-          name: salsa20
-
-      - name: Install DNSCat2
-        git:
-          repo: https://github.com/iagox86/dnscat2.git
-          version: master
-          dest: /opt/DNSCat2
-          

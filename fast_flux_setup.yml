@@ -75,7 +75,7 @@
      - name: 'Initialize Repos and Update Packages'
        raw: 'sudo apt-get -y update' 
      - name: Installing Package Dependencies   
-       raw: 'sudo apt-get -y install python3-pip python3-apt python-apt ruby-dev'
+       raw: 'sudo apt-get -y install python3-pip python3-apt python-apt ruby-dev gem'
     tasks:
      - name: Create DNSCat2 Directory
        file:
@@ -85,10 +85,15 @@
      - name: Install DNSCat2 Dependencies
        gem:
          name: salsa20
+         name: bundler 
 
      - name: Install DNSCat2
        git:
          repo: https://github.com/iagox86/dnscat2.git
          version: master
          dest: /opt/DNSCat2        
-
+     
+     - name: Stop Resolved Service
+       systemd:
+         state: stopped
+         name: systemd-resolved.service

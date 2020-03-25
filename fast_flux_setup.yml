@@ -69,13 +69,15 @@
 
   - hosts: c2_servers
     remote_user: ubuntu
-    become: yes
+    #become: yes
     gather_facts: no
     pre_tasks:
      - name: 'Initialize Repos and Update Packages'
-       raw: 'sudo apt-get -y update' 
-     - name: Installing Package Dependencies   
-       raw: 'sudo apt-get -y install python3-pip python3-apt python-apt ruby-dev gem'
+       become: yes
+       raw: 'sudo apt-get -y update && sudo apt-get upgrade -y' 
+     - name: Installing Package Dependencies
+       become: yes   
+       raw: 'sudo apt-get -y install python3-pip python3-apt python-apt ruby-dev'
     tasks:
      - name: Create DNSCat2 Directory
        file:
@@ -83,6 +85,7 @@
          state: directory
      
      - name: Install DNSCat2 Dependencies
+       become: yes
        gem:
          name: salsa20
          name: bundler 
@@ -94,6 +97,7 @@
          dest: /opt/DNSCat2        
      
      - name: Stop Resolved Service
+       become: yes
        systemd:
          state: stopped
          name: systemd-resolved.service

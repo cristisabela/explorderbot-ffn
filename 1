@@ -1,0 +1,18 @@
+import boto3
+import argparse
+import time
+
+start_time=time.time()
+parser = argparse.ArgumentParser(description='Fast-Flux C2 Emulation')
+parser.add_argument('-i', '--instanceId', dest='instanceId', help='EC2 Instance ID')
+parser.add_argument('-t', '--time', dest='interval', help='Time interval for associating/releasing elastic ips')
+args = parser.parse_args()
+ec2 = boto3.client('ec2')
+
+while True:
+    allocation = ec2.allocate_address(Domain='vpc')
+    ec2.associate_address(InstanceId = instanceId, AllocationId = allocation["AllocationId"])
+    print("New EC2 IP Address: " + ec2.describe_addresses(InstanceId = instanceId))
+    time.sleep(interval)
+    response = ec2.release_address(AllocatoinId= allocation["AllocationId"])
+    print('Elastic IP Released.')

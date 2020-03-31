@@ -50,14 +50,15 @@
            region: "{{ region }}"
            keypair: "{{ keypair }}"
            count: "{{ count }}"
+           vpc_subnet_id: " {{ vpc_subnet_id }}"
            count_tag:
-             Name: DNSC2
+             Name: DNS_Server
         register: ec2
 
       - name: Add Newly Created Host to Hosts List
         add_host:
           name: "{{ item.public_ip }}"
-          groups: c2_servers
+          groups: dns_servers
         with_items: "{{ ec2.instances }}"
 
       - name: Wait for SSH Service to Start
@@ -92,9 +93,22 @@
          owner: root
          group: root
          mod: '0600'
-     - name: Create DNSCat2 Directory
+     - name: Copy Local Zone Conf File
+       copy:
+         src: named.conf.local
+         dest: /etc/named/named.conf.local
+         owner: root
+         group: root
+         mod: '0600'
+     - name: Create Zones Directory
        file:
-         path: /opt/DNSCat2
+         path: /etc/named/zones
          state: directory       
-     
+     - name: Copy Local Zone Conf File
+       copy:
+        src: db.exploderbot-uah.com
+        dest: /etc/named/db.exploderbot-uah.com
+        owner: root
+        group: root
+        mod: '0600'    
 

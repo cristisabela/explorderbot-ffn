@@ -82,10 +82,13 @@
          path: /opt/DNSCat2
          state: directory
 
-     - name: Install DNSCat2 Dependencies
+     - name: Install salsa20
        gem:
          name: salsa20
-         name: bundler 
+
+     - name: Install bundler
+       gem:
+         name: bundler
 
      - name: Install DNSCat2
        git:

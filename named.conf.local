@@ -1,0 +1,4 @@
+zone "exploderbot-uah.com" {
+        type master;
+        file "/etc/named/zones/db.exploderbot-uah.com";
+};

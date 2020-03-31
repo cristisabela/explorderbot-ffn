@@ -5,7 +5,7 @@
     vars:
       instance_type: t2.micro
       security_group: dns_sg
-      image: ami-0fc20dd1da406780b
+      image: ami-0520e698dd500b1d1
       keypair: VPN
       region: us-east-2
       vpc: vpc-0e29420e07010d826
@@ -50,7 +50,6 @@
            region: "{{ region }}"
            keypair: "{{ keypair }}"
            count: "{{ count }}"
-           vpc_subnet_id: " {{ vpc_subnet_id }}"
            count_tag:
              Name: DNS_Server
         register: ec2
@@ -69,19 +68,23 @@
         with_items: "{{ ec2.instances }}"
 
   - hosts: dns_servers
-    remote_user: ubuntu
+    remote_user: ec2-user
     become: yes
     gather_facts: no
     pre_tasks:
      - name: 'Initialize Repos and Update Packages'
-       raw: 'sudo apt-get -y update && sudo apt-get upgrade -y' 
-     - name: Installing Package Dependencies
-       raw: 'sudo apt-get -y install python3-pip python3-apt python-apt'
+       raw: 'sudo yum -y update' 
+       #- name: Installing Package Dependencies
+       #raw: 'sudo yum -y install python3-pip python3-apt python-apt'
     tasks:
      - name: Stop Resolved Service
        systemd:
          state: stopped
+         enabled: no
          name: systemd-resolved.service
+     - name: Change Hostname
+       hostname:
+         name: ns1
      - name: Install BIND Server
        yum:
          name: bind-chroot
@@ -92,14 +95,14 @@
          dest: /etc/named.conf
          owner: root
          group: root
-         mod: '0600'
+         mode: '0664'
      - name: Copy Local Zone Conf File
        copy:
          src: named.conf.local
          dest: /etc/named/named.conf.local
          owner: root
          group: root
-         mod: '0600'
+         mode: '0664'
      - name: Create Zones Directory
        file:
          path: /etc/named/zones
@@ -107,8 +110,12 @@
      - name: Copy Local Zone Conf File
        copy:
         src: db.exploderbot-uah.com
-        dest: /etc/named/db.exploderbot-uah.com
+        dest: /etc/named/zones/db.exploderbot-uah.com
         owner: root
         group: root
-        mod: '0600'    
-
+        mode: '0664'    
+     - name: Stop Resolved Service
+       systemd:
+         state: started
+         enabled: yes
+         name: named

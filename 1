@@ -1,18 +1,114 @@
-import boto3
-import argparse
-import time
+---
+  - hosts: local
+    connection: local
+    gather_facts: False
+    vars:
+      instance_type: t2.micro
+      security_group: dns_sg
+      image: ami-0520e698dd500b1d1
+      keypair: VPN
+      region: us-east-2
+      vpc: vpc-0e29420e07010d826
+      vpc_subnet_id: subnet-07c8e9cd2fe24ffc2
+      count: 1
+    vars_files:
+      - aws_keys.yml
 
-start_time=time.time()
-parser = argparse.ArgumentParser(description='Fast-Flux C2 Emulation')
-parser.add_argument('-i', '--instanceId', dest='instanceId', help='EC2 Instance ID')
-parser.add_argument('-t', '--time', dest='interval', help='Time interval for associating/releasing elastic ips')
-args = parser.parse_args()
-ec2 = boto3.client('ec2')
+    tasks:
+      - name: Create Security Group
+        ec2_group:
+          name: "{{ security_group }}"
+          description: DNS C2 Security Group
+          region: "{{ region }}"
+          aws_access_key: "{{ aws_access_key }}"
+          aws_secret_key: "{{ aws_secret_key }}"
+          rules:
+           - proto: tcp
+             from_port: 22
+             to_port: 22
+             cidr_ip: 0.0.0.0/0
+           - proto: udp
+             from_port: 53
+             to_port: 53
+             cidr_ip: 0.0.0.0/0
+           - proto: tcp
+             from_port: 53
+             to_port: 53
+             cidr_ip: 0.0.0.0/0
+          rules_egress:
+           - proto: all
+             cidr_ip: 0.0.0.0/0
 
-while True:
-    allocation = ec2.allocate_address(Domain='vpc')
-    ec2.associate_address(InstanceId = instanceId, AllocationId = allocation["AllocationId"])
-    print("New EC2 IP Address: " + ec2.describe_addresses(InstanceId = instanceId))
-    time.sleep(interval)
-    response = ec2.release_address(AllocatoinId= allocation["AllocationId"])
-    print('Elastic IP Released.')
+      - name: Launch New EC2 Instance
+        ec2:
+           aws_access_key: "{{ aws_access_key }}"
+           aws_secret_key: "{{ aws_secret_key }}"
+           group={{ security_group }}
+           instance_type: "{{ instance_type }}"
+           image: "{{ image }}"
+           wait: true 
+           region: "{{ region }}"
+           keypair: "{{ keypair }}"
+           count: "{{ count }}"
+           vpc_subnet_id: " {{ vpc_subnet_id }}"
+           count_tag:
+             Name: DNS_Server
+        register: ec2
+
+      - name: Add Newly Created Host to Hosts List
+        add_host:
+          name: "{{ item.public_ip }}"
+          groups: dns_servers
+        with_items: "{{ ec2.instances }}"
+
+      - name: Wait for SSH Service to Start
+        wait_for:
+          host: "{{ item.public_ip }}"
+          port: 22 
+          state: started 
+        with_items: "{{ ec2.instances }}"
+
+  - hosts: dns_servers
+    remote_user: ubuntu
+    become: yes
+    gather_facts: no
+    pre_tasks:
+     - name: 'Initialize Repos and Update Packages'
+       raw: 'sudo apt-get -y update && sudo apt-get upgrade -y' 
+     - name: Installing Package Dependencies
+       raw: 'sudo apt-get -y install python3-pip python3-apt python-apt'
+    tasks:
+     - name: Stop Resolved Service
+       systemd:
+         state: stopped
+         name: systemd-resolved.service
+     - name: Install BIND Server
+       yum:
+         name: bind-chroot
+         state: latest
+     - name: Copy BIND Config
+       copy:
+         src: named.conf
+         dest: /etc/named.conf
+         owner: root
+         group: root
+         mod: '0600'
+     - name: Copy Local Zone Conf File
+       copy:
+         src: named.conf.local
+         dest: /etc/named/named.conf.local
+         owner: root
+         group: root
+         mod: '0600'
+     - name: Create Zones Directory
+       file:
+         path: /etc/named/zones
+         state: directory       
+     - name: Copy Local Zone Conf File
+       copy:
+        src: db.exploderbot-uah.com
+        dest: /etc/named/db.exploderbot-uah.com
+        owner: root
+        group: root
+        mod: '0600'    
+

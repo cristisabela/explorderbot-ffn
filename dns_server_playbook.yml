@@ -75,7 +75,7 @@
      - name: 'Initialize Repos and Update Packages'
        raw: 'sudo yum -y update' 
        #- name: Installing Package Dependencies
-       #raw: 'sudo yum -y install python3-pip python3-apt python-apt'
+       raw: 'sudo yum -y install python3-pip git'
     tasks:
      - name: Stop Resolved Service
        systemd:
@@ -114,8 +114,9 @@
         owner: root
         group: root
         mode: '0664'    
-     - name: Stop Resolved Service
+     - name: Start Named Service
        systemd:
          state: started
          enabled: yes
-         name: named
+         name: named  
+         

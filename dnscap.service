@@ -1,0 +1,9 @@
+[Unit]
+Description=DNS PCAP Service.
+
+[Service]
+ExecStart=/bin/bash /home/ec2-user/packetcap.sh
+User= pcap_svc
+
+[Install]
+WantedBy=multi-user.target

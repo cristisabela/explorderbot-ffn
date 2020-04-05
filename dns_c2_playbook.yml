@@ -75,7 +75,7 @@
      - name: 'Initialize Repos and Update Packages'
        raw: 'sudo apt-get -y update && sudo apt-get upgrade -y' 
      - name: Installing Package Dependencies
-       raw: 'sudo apt-get -y install python3-pip python3-apt python-apt ruby-dev'
+       raw: 'sudo apt-get -y install python3-pip python3-apt python-apt ruby-dev ruby-bundler'
     tasks:
      - name: Create DNSCat2 Directory
        file:

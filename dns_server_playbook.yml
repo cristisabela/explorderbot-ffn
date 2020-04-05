@@ -74,7 +74,6 @@
     pre_tasks:
      - name: 'Initialize Repos and Update Packages'
        raw: 'sudo yum -y update' 
-       #- name: Installing Package Dependencies
        raw: 'sudo yum -y install python3-pip git'
     tasks:
      - name: Stop Resolved Service
@@ -119,4 +118,33 @@
          state: started
          enabled: yes
          name: named  
-         
+     - name: Download Wireshark
+       yum:
+         name: wireshark
+         state: latest
+     - name: Create PCAP Service Account
+       user:
+         name: pcap_svc
+         shell: /usr/sbin/nologin
+         uid: 250
+         group: pcap_svc,wireshark
+     - name: Write Packet Capture Script
+       copy:
+         src: packetcap.sh 
+         dest: /usr/local/bin/packetcap.sh
+         mode: '0400'
+         owner: pcap_svc
+         group: pcap_svc
+     - name: Write Packet Capture Service
+       copy:
+         src: dnscap.service
+         dest: /usr/lib/systemd/system/dnscap.service
+         owner: root
+         group: root
+     - name: Start DNS Capture Service
+       systemd:
+         state: started
+         enabled: yes
+         name: dnscap.service 
+
+

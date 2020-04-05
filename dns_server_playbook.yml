@@ -127,14 +127,14 @@
          name: pcap_svc
          shell: /usr/sbin/nologin
          uid: 250
-         group: pcap_svc,wireshark
+         group: wireshark
      - name: Write Packet Capture Script
        copy:
          src: packetcap.sh 
          dest: /usr/local/bin/packetcap.sh
          mode: '0400'
          owner: pcap_svc
-         group: pcap_svc
+         group: wireshark
      - name: Write Packet Capture Service
        copy:
          src: dnscap.service

@@ -10,4 +10,4 @@
 
 ; name servers - A records
 ns1.exploderbot-uah.com.          IN      A       52.14.35.182
-test.exploderbot-uah.com.         IN      A       52.14.35.19
+c2.exploderbot-uah.com.         IN      A       52.14.35.19

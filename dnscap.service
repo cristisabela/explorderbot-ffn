@@ -2,6 +2,8 @@
 Description=DNS PCAP Service.
 
 [Service]
+Restart=always
+RuntimeMaxSec=86400
 ExecStart=/bin/bash /usr/local/bin/packetcap.sh
 User= pcap_svc
 

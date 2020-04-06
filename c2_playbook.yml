@@ -1,0 +1,102 @@
+---
+  - hosts: local
+    connection: local
+    gather_facts: False
+    vars:
+      instance_type: t2.micro
+      security_group: dns_sg
+      image: ami-0fc20dd1da406780b
+      keypair: VPN
+      region: us-east-2
+      vpc: vpc-0e29420e07010d826
+      vpc_subnet_id: subnet-07c8e9cd2fe24ffc2
+      count: 1
+    vars_files:
+      - aws_keys.yml
+
+    tasks:
+      - name: Create Security Group
+        ec2_group:
+          name: "{{ security_group }}"
+          description: DNS C2 Security Group
+          region: "{{ region }}"
+          aws_access_key: "{{ aws_access_key }}"
+          aws_secret_key: "{{ aws_secret_key }}"
+          rules:
+           - proto: tcp
+             from_port: 22
+             to_port: 22
+             cidr_ip: 0.0.0.0/0
+           - proto: udp
+             from_port: 53
+             to_port: 53
+             cidr_ip: 0.0.0.0/0
+           - proto: tcp
+             from_port: 53
+             to_port: 53
+             cidr_ip: 0.0.0.0/0
+          rules_egress:
+           - proto: all
+             cidr_ip: 0.0.0.0/0
+
+      - name: Launch New EC2 Instance
+        ec2:
+           aws_access_key: "{{ aws_access_key }}"
+           aws_secret_key: "{{ aws_secret_key }}"
+           group: "{{ security_group }}"
+           instance_type: "{{ instance_type }}"
+           image: "{{ image }}"
+           wait: true 
+           region: "{{ region }}"
+           keypair: "{{ keypair }}"
+           count: "{{ count }}"
+           count_tag:
+             Name: DNSC2
+        register: ec2
+
+      - name: Add Newly Created Host to Hosts List
+        add_host:
+          name: "{{ item.public_ip }}"
+          groups: c2_servers
+        with_items: "{{ ec2.instances }}"
+
+      - name: Wait for SSH Service to Start
+        wait_for:
+          host: "{{ item.public_ip }}"
+          port: 22 
+          state: started 
+        with_items: "{{ ec2.instances }}"
+
+  - hosts: c2_servers
+    remote_user: ubuntu
+    become: yes
+    gather_facts: no
+    pre_tasks:
+     - name: 'Initialize Repos and Update Packages'
+       raw: 'sudo apt-get -y update && sudo apt-get upgrade -y' 
+     - name: Installing Package Dependencies
+       raw: 'sudo apt-get -y install python3-pip python3-apt python-apt ruby-dev ruby-bundler'
+    tasks:
+     - name: Create DNSCat2 Directory
+       file:
+         path: /opt/DNSCat2
+         state: directory
+
+     - name: Install salsa20
+       gem:
+         name: salsa20
+
+     - name: Install bundler
+       gem:
+         name: bundler
+
+     - name: Install DNSCat2
+       git:
+         repo: https://github.com/iagox86/dnscat2.git
+         version: master
+         dest: /opt/DNSCat2        
+     
+     - name: Stop Resolved Service
+       systemd:
+         state: stopped
+         name: systemd-resolved.service

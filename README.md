@@ -26,7 +26,7 @@
  All necessary source-code to replicate the ExploderBot Fast Flux Infrastructure is hosted via a
 Github repository. Utilize the git command-line interface (cli) to clone the repository:
 ```
-# git clone https://github.com/cristabela/dnstool
+# git clone https://github.com/cristabela/exploderbot-ffn
 ```
 
 ### Create Python Virtual Envionment

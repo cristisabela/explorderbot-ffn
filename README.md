@@ -66,13 +66,31 @@ AWS IAM enables secure access to AWS resources. Using IAM, multiple users may in
 ![alt-text](https://github.com/cristisabela/explorderbot-ffn/blob/master/images/user_review.png)
 
 ### AWS - Maintaining User Access Keys
-// Add images to this section
+![alt-text](https://github.com/cristisabela/explorderbot-ffn/blob/master/images/user_keys.png)
+* After successfully creating a new user(s), a unique Access key ID and Secret access key will be generated. This is only time that these credentials will be accessible to review. Ensure that these are securely stored and disseminated to the appropriate user.
 
 ### AWS - Create SSH Public Key Pair
-// Add images to this section
+* AWS Elastic Compute Cloud (EC2) instances utilize Secure Shell (SSH) public keys for authentication. During EC2 creation, an SSH key is associated with an instance. Create an SSH Key for the user:
+![alt-text](https://github.com/cristisabela/explorderbot-ffn/blob/master/images/services_ec2.png)
+* Select the “Services” tab from the AWS navigation bar and click “EC2” under the “Compute” tab.
+![alt-text](https://github.com/cristisabela/explorderbot-ffn/blob/master/images/create_key_pair.png)
+* Under the EC2 Dashboard, select “Key Pairs” under the “Network and Security” tab.
+[alt-text](https://github.com/cristisabela/explorderbot-ffn/blob/master/images/key_pair_name.png)
+* Enter a key pair name and ensure that the “pem” File format is selected. Click “Create key pair” to finish. Download and store the public key.
+* Note – This will be the only time in which the newly create public key will be available for download. 
+[alt-text](https://github.com/cristisabela/explorderbot-ffn/blob/master/images/ansible_key_pair_name.png)
+* To utilize the new keypair, edit an Ansible Playbook and modify the keypair variable with the new key pair name.
 
 ### Create an Ansible Vault
-// Add images to this section
+Ansible Vault is a feature of ansible that provides encrypted storages of sensitive passwords or keys, rather than as plaintext values in a playbook or role. These vault files can then be distributed or placed in source control. Create a new ansible vault to store the AWS Access Key ID and Secret Access Key for a user:
+```
+(virtualenv)# ansible-vault create [vault_name].yml
+New Vault password:
+Confirm New Vault password:
+```
+![alt-text](https://github.com/cristisabela/explorderbot-ffn/blob/master/images/vault.png)
+* This will open a text editor. Ensure to utilize aws_access_key: and aws_secret_key: as variables and provide the respective values for each. Once saved, the file’s content will be encrypted.
+![alt-text](https://github.com/cristisabela/explorderbot-ffn/blob/master/images/cat_vault.png)
 
 ### Run an Ansible Playbook
 Run an Ansible playbook by executing the following:

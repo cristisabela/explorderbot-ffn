@@ -1,11 +1,5 @@
 ## ExploderBot Testbed
 
-### To Do:
-
-- [x] Base EC2 Playbook
-- [x] DNS C2 Playbook
-- [ ] DNS Data Collection Playbook
-
 ### Host Requirements
 * Operating System (OS)
   * Linux Derivative - Successfully tested with RHEL/CENTOS and Debian-based Distributions

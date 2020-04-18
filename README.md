@@ -52,7 +52,18 @@ to automate the deployment of key pieces of infrastructure:
     * Malware Hosting
 
 ### AWS - Create Identity Access Management (IAM) Users
-// Add images to this section
+AWS IAM enables secure access to AWS resources. Using IAM, multiple users may interact with a single subscription and can be managed through groups and permissions. Create an IAM user by accessing the IAM Dashboard:
+![alt-text](https://github.com/cristisabela/explorderbot-ffn/blob/master/images/my_security_credentials.png)
+* The IAM Dashboard is most easily access by clicking the account’s username, located in the AWS navigation bar, and selecting “My Security Credentials”
+![alt-text](https://github.com/cristisabela/explorderbot-ffn/blob/master/images/add_user.png)
+* Select the “Users” option located under the “Access management” tab within the IAM Dashboard’s Sidebar and then select “Add user”
+![alt-text](https://github.com/cristisabela/explorderbot-ffn/blob/master/images/user_details.png)
+* Fill out the form with the appropriate username and password settings. Ensure that the “Programmatic access” and “AWS Management Console access” check boxes are both selected and select “Permissions” to proceed.
+![alt-text](https://github.com/cristisabela/explorderbot-ffn/blob/master/images/set_permissions.png)
+* Set the desired permissions the created users by either creating a user group, or attaching existing AWS policies directly to a user. 
+ * Note: Standard Users of this infrastructure will only need the “AmazonEC2FullAccess” policy selected to replicate the Fast Flux infrastructure.
+* After selecting policies, proceed to “Tags” and provide IAM tags as needed. Finally, proceed to “Review” and finish by clicking “Create user”
+![alt-text](https://github.com/cristisabela/explorderbot-ffn/blob/master/images/user_review.png)
 
 ### AWS - Maintaining User Access Keys
 // Add images to this section

@@ -99,7 +99,7 @@ Run an Ansible playbook by executing the following:
 ```
 
 ### AWS EC2 Elastic IP Utility
-Execte the Elastic IP by running the following:
+Execute the Elastic IP by running the following:
 ```
 (virtualenv)# allocate.py -i [Instance ID] -t [time]
 ```
